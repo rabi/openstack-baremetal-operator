@@ -17,6 +17,8 @@ limitations under the License.
 package v1beta1
 
 import (
+	"fmt"
+
 	condition "github.com/openstack-k8s-operators/lib-common/modules/common/condition"
 	"github.com/openstack-k8s-operators/lib-common/modules/common/util"
 	corev1 "k8s.io/api/core/v1"
@@ -54,6 +56,8 @@ type OpenStackProvisionServerSpec struct {
 	Interface string `json:"interface,omitempty"`
 	// OSImage - OS qcow2 image (compressed as gz, or uncompressed)
 	OSImage string `json:"osImage"`
+	// OSImageChecksum - OS qcow2 image Checksum file
+	OSImageChecksum string `json:"osImageChecksum"`
 	// OSContainerImageURL - Container image URL for init with the OS qcow2 image (osImage)
 	OSContainerImageURL string `json:"osContainerImageUrl"`
 	// ApacheImageURL - Container image URL for the main container that serves the downloaded OS qcow2 image (osImage)
@@ -81,6 +85,8 @@ type OpenStackProvisionServerStatus struct {
 	ProvisionIP string `json:"provisionIp,omitempty"`
 	// URL of provisioning image on underlying Apache web server
 	LocalImageURL string `json:"localImageUrl,omitempty"`
+	// URL of provisioning image chekcxsum on underlying Apache web server
+	LocalImageChecksumURL string `json:"localImageChecksumUrl,omitempty"`
 }
 
 // IsReady - returns true if OpenStackProvisionServer is reconciled successfully
@@ -119,6 +125,7 @@ type OpenStackProvisionServerDefaults struct {
 	AgentImageURL       string
 	ApacheImageURL      string
 	OSImage             string
+	OSImageChecksum     string
 }
 
 func init() {
@@ -149,6 +156,7 @@ func SetupDefaults() {
 		AgentImageURL:       util.GetEnvVar("RELATED_IMAGE_AGENT_IMAGE_URL_DEFAULT", AgentImage),
 		ApacheImageURL:      util.GetEnvVar("RELATED_IMAGE_APACHE_IMAGE_URL_DEFAULT", ApacheImage),
 		OSImage:             util.GetEnvVar("OS_IMAGE_DEFAULT", OSImage),
+		OSImageChecksum:     util.GetEnvVar("OS_IMAGE_CHECKSUM_DEFAULT", fmt.Sprintf("%s.sha256", OSImage)),
 	}
 
 	SetupOpenStackProvisionServerDefaults(openstackProvisionServerDefaults)

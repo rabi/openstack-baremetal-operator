@@ -40,7 +40,7 @@ import (
 
 	metal3v1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 
-	baremetalv1beta1 "github.com/openstack-k8s-operators/openstack-baremetal-operator/api/v1beta1"
+	baremetalv1 "github.com/openstack-k8s-operators/openstack-baremetal-operator/api/v1beta1"
 	"github.com/openstack-k8s-operators/openstack-baremetal-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
@@ -53,7 +53,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(metal3v1.AddToScheme(scheme))
-	utilruntime.Must(baremetalv1beta1.AddToScheme(scheme))
+	utilruntime.Must(baremetalv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -132,7 +132,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	baremetalv1beta1.SetupDefaults()
+	baremetalv1.SetupDefaults()
 
 	//
 	// Webhooks
@@ -140,12 +140,12 @@ func main() {
 	checker := healthz.Ping
 	if strings.ToLower(os.Getenv("ENABLE_WEBHOOKS")) != "false" {
 
-		if err = (&baremetalv1beta1.OpenStackBaremetalSet{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&baremetalv1.OpenStackBaremetalSet{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "OpenStackBaremetalSet")
 			os.Exit(1)
 		}
 
-		if err = (&baremetalv1beta1.OpenStackProvisionServer{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&baremetalv1.OpenStackProvisionServer{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "OpenStackProvisionServer")
 			os.Exit(1)
 		}

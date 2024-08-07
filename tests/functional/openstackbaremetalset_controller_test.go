@@ -177,6 +177,7 @@ var _ = Describe("BaremetalSet Test", func() {
 				Port:                6190,
 				Interface:           "eth1",
 				OSImage:             "edpm-hardened-uefi.qcow2",
+				OSImageChecksum:     "edpm-hardened-uefi.qcow2.sha256",
 				OSContainerImageURL: "quay.io/podified-antelope-centos9/edpm-hardened-uefi@latest",
 				ApacheImageURL:      "registry.redhat.io/rhel8/httpd-24@latest",
 				AgentImageURL:       "quay.io/openstack-k8s-operators/openstack-baremetal-operator-agent@latest",

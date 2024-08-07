@@ -266,6 +266,9 @@ spec:
               osImage:
                 description: OSImage - OS qcow2 image Name
                 type: string
+              osImageChecksum:
+                description: OSImageChecksum - OS qcow2 image Name
+                type: string
               passwordSecret:
                 description: 'PasswordSecret the name of the secret used to optionally
                   set the root pwd by adding NodeRootPassword: <base64 enc pwd> to

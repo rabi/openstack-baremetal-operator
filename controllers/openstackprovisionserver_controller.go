@@ -431,7 +431,7 @@ func (r *OpenStackProvisionServerReconciler) reconcileNormal(ctx context.Context
 	}
 	// create Deployment - end
 
-	instance.Status.LocalImageURL, err = r.getLocalImageURL(ctx, helper, instance)
+	instance.Status.LocalImageURL, instance.Status.LocalImageChecksumURL, err = r.getLocalImageURL(ctx, helper, instance)
 	if err != nil {
 		instance.Status.Conditions.MarkFalse(
 			baremetalv1.OpenStackProvisionServerLocalImageURLReadyCondition, condition.ErrorReason, condition.SeverityError,
@@ -599,8 +599,9 @@ func (r *OpenStackProvisionServerReconciler) getProvisioningInterface(
 }
 
 func (r *OpenStackProvisionServerReconciler) getLocalImageURL(
-	ctx context.Context, helper *helper.Helper, instance *baremetalv1.OpenStackProvisionServer) (string, error) {
+	ctx context.Context, helper *helper.Helper, instance *baremetalv1.OpenStackProvisionServer) (string, string, error) {
 	baseFilename := instance.Spec.OSImage
+	checksumFileName := instance.Spec.OSImageChecksum
 	host := instance.Status.ProvisionIP
 	if host == "" {
 		serviceLabels := labels.GetLabels(instance, openstackprovisionserver.AppLabel, map[string]string{
@@ -610,7 +611,7 @@ func (r *OpenStackProvisionServerReconciler) getLocalImageURL(
 		provisionPods, err := helper.GetKClient().CoreV1().Pods(
 			instance.Namespace).List(ctx, metav1.ListOptions{LabelSelector: podSelectorString})
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 		//We're using hostNetwork for the provisionserver pod
 		host = provisionPods.Items[0].Status.HostIP
@@ -619,5 +620,7 @@ func (r *OpenStackProvisionServerReconciler) getLocalImageURL(
 	if k8snet.IsIPv6(net.ParseIP(host)) {
 		host = fmt.Sprintf("[%s]", host)
 	}
-	return fmt.Sprintf("http://%s:%d/%s", host, instance.Spec.Port, baseFilename), nil
+	imageURL := fmt.Sprintf("http://%s:%d/%s", host, instance.Spec.Port, baseFilename)
+	imageChecksumURL := fmt.Sprintf("http://%s:%d/%s", host, instance.Spec.Port, checksumFileName)
+	return imageURL, imageChecksumURL, nil
 }

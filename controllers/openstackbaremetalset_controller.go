@@ -491,6 +491,7 @@ func (r *OpenStackBaremetalSetReconciler) provisionServerCreateOrUpdate(
 		}
 
 		provisionServer.Spec.OSImage = instance.Spec.OSImage
+		provisionServer.Spec.OSImageChecksum = instance.Spec.OSImageChecksum
 		provisionServer.Spec.OSContainerImageURL = instance.Spec.OSContainerImageURL
 		provisionServer.Spec.ApacheImageURL = instance.Spec.ApacheImageURL
 		provisionServer.Spec.AgentImageURL = instance.Spec.AgentImageURL
@@ -632,6 +633,7 @@ func (r *OpenStackBaremetalSetReconciler) ensureBaremetalHosts(
 			desiredHostName,
 			instance.Spec.BaremetalHosts[desiredHostName].CtlPlaneIP, // ctlPlaneIP
 			provisionServer.Status.LocalImageURL,
+			provisionServer.Status.LocalImageChecksumURL,
 			sshSecret,
 			passwordSecret,
 			envVars,

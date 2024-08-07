@@ -74,6 +74,9 @@ spec:
               osImage:
                 description: OSImage - OS qcow2 image (compressed as gz, or uncompressed)
                 type: string
+              osImageChecksum:
+                description: OSImageChecksum - OS qcow2 image Checksum file
+                type: string
               port:
                 description: Port - The port on which the Apache server should listen
                 format: int32
@@ -132,6 +135,7 @@ spec:
             - apacheImageUrl
             - osContainerImageUrl
             - osImage
+            - osImageChecksum
             - port
             type: object
           status:
@@ -186,6 +190,10 @@ spec:
                   type: string
                 description: Map of hashes to track e.g. job status
                 type: object
+              localImageChecksumUrl:
+                description: URL of provisioning image chekcxsum on underlying Apache
+                  web server
+                type: string
               localImageUrl:
                 description: URL of provisioning image on underlying Apache web server
                 type: string

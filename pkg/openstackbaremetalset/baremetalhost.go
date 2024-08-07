@@ -29,6 +29,7 @@ func BaremetalHostProvision(
 	hostName string,
 	ctlPlaneIP string,
 	localImageURL string,
+	localImageChecksumURL string,
 	sshSecret *corev1.Secret,
 	passwordSecret *corev1.Secret,
 	envVars *map[string]env.Setter,
@@ -217,7 +218,7 @@ func BaremetalHostProvision(
 		if foundBaremetalHost.Status.Provisioning.State != metal3v1.StateProvisioned {
 			foundBaremetalHost.Spec.Image = &metal3v1.Image{
 				URL:          localImageURL,
-				Checksum:     fmt.Sprintf("%s.sha256", localImageURL),
+				Checksum:     localImageChecksumURL,
 				ChecksumType: metal3v1.SHA256,
 			}
 		}
@@ -230,7 +231,7 @@ func BaremetalHostProvision(
 			foundBaremetalHost.Spec.ConsumerRef = &corev1.ObjectReference{Name: instance.Name, Kind: instance.Kind, Namespace: instance.Namespace}
 			foundBaremetalHost.Spec.Image = &metal3v1.Image{
 				URL:          localImageURL,
-				Checksum:     fmt.Sprintf("%s.sha256", localImageURL),
+				Checksum:     localImageChecksumURL,
 				ChecksumType: metal3v1.SHA256,
 			}
 			foundBaremetalHost.Spec.UserData = userDataSecret

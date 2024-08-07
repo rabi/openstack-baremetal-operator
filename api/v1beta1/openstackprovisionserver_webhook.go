@@ -115,4 +115,7 @@ func (r *OpenStackProvisionServer) Default() {
 	if r.Spec.OSImage == "" {
 		r.Spec.OSImage = openstackProvisionServerDefaults.OSImage
 	}
+	if r.Spec.OSImageChecksum == "" {
+		r.Spec.OSImage = openstackProvisionServerDefaults.OSImageChecksum
+	}
 }

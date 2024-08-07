@@ -65,6 +65,7 @@ func DefaultBaremetalSetSpec(name types.NamespacedName, withProvInterface bool) 
 		spec["agentImageUrl"] = "quay.io/openstack-k8s-operators/openstack-baremetal-operator-agent@latest"
 		spec["apacheImageUrl"] = "registry.redhat.io/rhel8/httpd-24@latest"
 		spec["osImage"] = "edpm-hardened-uefi.qcow2"
+		spec["osImageChecksum"] = "edpm-hardened-uefi.qcow2.sha256"
 	}
 
 	return spec
