@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -85,6 +86,30 @@ func VerifyBaremetalStatusBmhRefs(
 	return nil
 }
 
+func concatenatedValues(innerMap map[string]string) string {
+	var values []string
+	for _, v := range innerMap {
+		values = append(values, v)
+	}
+	sort.Strings(values) // Sort the values for consistent ordering
+	return strings.Join(values, ", ")
+}
+
+func sortBaremetalHostsFromNodeSet(instance *OpenStackBaremetalSet, l logr.Logger) []string {
+	keys := make([]string, 0, len(instance.Spec.BaremetalHosts))
+	for k := range instance.Spec.BaremetalHosts {
+		keys = append(keys, k)
+	}
+	// Sort the outer keys based on the concatenated values of the inner maps
+	sort.Slice(keys, func(i, j int) bool {
+		return concatenatedValues(
+			instance.Spec.BaremetalHosts[keys[i]].BmhLabelSelector) < concatenatedValues(
+			instance.Spec.BaremetalHosts[keys[j]].BmhLabelSelector)
+	})
+	return keys
+
+}
+
 // VerifyBaremetalSetScaleUp -
 func VerifyBaremetalSetScaleUp(
 	l logr.Logger,
@@ -107,13 +132,18 @@ func VerifyBaremetalSetScaleUp(
 			instance.Name, "namespace", instance.Spec.BmhNamespace, "quantity", newBmhsNeededCount, "labels", labelStr)
 
 		selectedCount := 0
+		var alreadyMatchedHosts []string
+		sort.Slice(allBmhs.Items, func(i, j int) bool {
+			return concatenatedValues(allBmhs.Items[i].Labels) > concatenatedValues(allBmhs.Items[j].Labels)
+		})
+
 		for _, baremetalHost := range allBmhs.Items {
 
 			if selectedCount == newBmhsNeededCount {
 				break
 			}
 			mismatch := false
-			hostName, matched := verifyBaremetalSetInstanceLabelMatch(l, instance, &baremetalHost)
+			hostName, matched := verifyBaremetalSetInstanceLabelMatch(l, instance, &baremetalHost, alreadyMatchedHosts)
 			if !matched {
 				l.Info("BaremetalHost cannot be used as it does not match node labels for", "BMH", baremetalHost.ObjectMeta.Name)
 				mismatch = true
@@ -145,7 +175,7 @@ func VerifyBaremetalSetScaleUp(
 			}
 
 			l.Info("Available BaremetalHost", "BMH", baremetalHost.ObjectMeta.Name)
-
+			alreadyMatchedHosts = append(alreadyMatchedHosts, hostName)
 			selectedBaremetalHosts[hostName] = baremetalHost
 			selectedCount++
 		}
@@ -193,12 +223,19 @@ func VerifyBaremetalSetScaleDown(
 func verifyBaremetalSetInstanceLabelMatch(
 	l logr.Logger,
 	instance *OpenStackBaremetalSet,
-	bmh *metal3v1.BareMetalHost) (string, bool) {
-
+	bmh *metal3v1.BareMetalHost,
+	alreadyMatchedHosts []string) (string, bool) {
+	hosts := sortBaremetalHostsFromNodeSet(instance, l)
 	bmhLabels := bmh.GetLabels()
-	for hostName, instanceSpec := range instance.Spec.BaremetalHosts {
-		if IsMapSubset(bmhLabels, instanceSpec.BmhLabelSelector) {
-			return hostName, true
+	for _, host := range hosts {
+		alreadyMatched := false
+		for _, name := range alreadyMatchedHosts {
+			if name == host {
+				alreadyMatched = true
+			}
+		}
+		if !alreadyMatched && IsMapSubset(bmhLabels, instance.Spec.BaremetalHosts[host].BmhLabelSelector) {
+			return host, true
 		}
 	}
 	l.Info("BaremetalHost does not match any of the node labels as requested", "BMH", bmh.ObjectMeta.Name)
